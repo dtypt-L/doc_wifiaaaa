@@ -1,0 +1,24 @@
+*~
+
+# temporary files which can be created if a process still has a handle open of a deleted file
+.fuse_hidden*
+
+# KDE directory preferences
+.directory
+
+# Linux trash folder which might appear on any partition or disk
+.Trash-*
+
+# .nfs files are created when an open file is removed but is still being accessed
+.nfs*
+#编辑器
+.idea
+#系统文件
+.DS_Store
+#测试文件
+tests
+#协议
+!*LICENSE.txt
+
+
+
