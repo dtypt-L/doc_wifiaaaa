@@ -1,0 +1,170 @@
+version: "3"
+services:
+
+### Nginx container #########################################
+  nginx:
+    build:
+      context: ./nginx/build
+      args:
+        IMAGE_BASE: $NGINX_IMAGE_BASE
+        IMAGE_VERSION: $NGINX_IMAGE_VERSION
+        IMAGE_TAG: $NGINX_IMAGE_TAG
+        USER_GROUP: $GLOBAL_USER_GROUP
+        USER_NAME: $GLOBAL_USER_NAME
+        USER_GROUP_ID: $GLOBAL_USER_GROUP_ID
+        USER_NAME_ID: $GLOBAL_USER_NAME_ID
+        WORKING_DIR: $GLOBAL_WORKING_DIR
+        TIME_ZONE: $GLOBAL_TIME_ZONE
+        CHANGE_SOURCE: $GLOBAL_CHANGE_SOURCE
+        BUILD_DEPS: $NGINX_BUILD_DEPS
+#    image: $NGINX_IMAGE_BASE:$NGINX_IMAGE_VERSION$NGINX_IMAGE_TAG
+    container_name: $NGINX_CONTAINER_NAME
+#    user: $GLOBAL_USER_NAME
+    working_dir: $GLOBAL_WORKING_DIR
+#    depends_on:
+#      - php
+    ports:
+      - $NGINX_HTTP_PORT
+      - $NGINX_HTTP_PORT_PORTAL
+      - $NGINX_HTTPS_PORT
+      - $NGINX_HTTP_PORT_ADMIN
+    tmpfs:
+      - /run
+      - /tmp
+      - $GLOBAL_WORKING_DIR
+    volumes:
+      - $NGINX_CONF_DIR/nginx.conf:/etc/nginx/nginx.conf:ro
+      - $NGINX_CONF_DIR:/etc/nginx/conf:ro
+      - $SOURCE_SHARE_DIR/wwwroot:$GLOBAL_WORKING_DIR/wwwroot:ro
+      - $SOURCE_SHARE_DIR/wwwlogs/nginx:$GLOBAL_WORKING_DIR/wwwlogs/nginx:rw
+      - /usr/share/zoneinfo/$GLOBAL_TIME_ZONE:/usr/share/zoneinfo/$GLOBAL_TIME_ZONE:ro
+    environment:
+      TZ: $GLOBAL_TIME_ZONE
+    privileged: true
+    restart: always
+    stdin_open: true
+    networks:
+      - $GLOBAL_NETWORKS_NAME
+
+  ### PHP container #########################################
+
+  php:
+    build:
+      context: ./php/build
+      args:
+        IMAGE_BASE: $PHP_IMAGE_BASE
+        IMAGE_VERSION: $PHP_IMAGE_VERSION
+        IMAGE_TAG: $PHP_IMAGE_TAG
+        USER_GROUP: $GLOBAL_USER_GROUP
+        USER_NAME: $GLOBAL_USER_NAME
+        USER_GROUP_ID: $GLOBAL_USER_GROUP_ID
+        USER_NAME_ID: $GLOBAL_USER_NAME_ID
+        WORKING_DIR: $GLOBAL_WORKING_DIR
+        TIME_ZONE: $GLOBAL_TIME_ZONE
+        CHANGE_SOURCE: $GLOBAL_CHANGE_SOURCE
+        INI_DIR: $PHP_INI_DIR
+        BUILD_DEPS: $PHP_BUILD_DEPS
+        PECL_DEPS: $PHP_PECL_DEPS
+        SAVE_DEPS: $PHP_SAVE_DEPS
+    container_name: $PHP_CONTAINER_NAME
+#    user: $GLOBAL_USER_NAME
+    working_dir: $GLOBAL_WORKING_DIR
+    ports:
+      - $PHP_HTTP_PORT
+    expose:
+      - $PHP_EXPOSE_PORT
+    volumes:
+      - $PHP_CONF_FILE:/usr/local/etc/php/php.ini:ro
+      - $PHP_FPM_FILE:/usr/local/etc/php-fpm.conf:ro
+      - $PHP_FPM_DIR:/usr/local/etc/php-fpm.d/:ro
+      - $PHP_LOG_DIR:/var/log:rw
+      - $SOURCE_SHARE_DIR:$GLOBAL_WORKING_DIR:rw
+      - /usr/share/zoneinfo/$GLOBAL_TIME_ZONE:/usr/share/zoneinfo/$GLOBAL_TIME_ZONE:ro
+    command:
+      - sh
+      - -ceux
+      - |
+        chown -R $GLOBAL_USER_GROUP:$GLOBAL_USER_NAME $GLOBAL_WORKING_DIR ; \
+        chmod -R 775 $GLOBAL_WORKING_DIR ; \
+        chown -R $GLOBAL_USER_GROUP:$GLOBAL_USER_NAME /var/log ; \
+        chmod -R 777 /var/log ; \
+        composer config -g repo.packagist composer https://packagist.phpcomposer.com ; \
+        php-fpm ; \
+        tail -f
+    environment:
+      TZ: $GLOBAL_TIME_ZONE
+    restart: always
+    stdin_open: true
+    networks:
+      - $GLOBAL_NETWORKS_NAME
+
+  ### Mysql container #########################################
+  mysql:
+    build:
+      context: ./mysql/build
+      args:
+        IMAGE_BASE: $MYSQL_IMAGE_BASE
+        IMAGE_VERSION: $MYSQL_IMAGE_VERSION
+        IMAGE_TAG: $MYSQL_IMAGE_TAG
+        USER_GROUP: $GLOBAL_USER_GROUP
+        USER_NAME: $GLOBAL_USER_NAME
+        USER_GROUP_ID: $GLOBAL_USER_GROUP_ID
+        USER_NAME_ID: $GLOBAL_USER_NAME_ID
+        WORKING_DIR: $GLOBAL_WORKING_DIR
+        TIME_ZONE: $GLOBAL_TIME_ZONE
+        CHANGE_SOURCE: $GLOBAL_CHANGE_SOURCE
+        BUILD_DEPS: $MYSQL_BUILD_DEPS
+#    image: $MYSQL_IMAGE_BASE:$MYSQL_IMAGE_VERSION$MYSQL_IMAGE_TAG
+    container_name: $MYSQL_CONTAINER_NAME
+    user: mysql
+    working_dir: $GLOBAL_WORKING_DIR
+    ports:
+      - $MYSQL_HTTP_PORT
+    expose:
+      - $MYSQL_EXPOSE_PORT
+    volumes:
+      - ./mysql/conf/my.cnf:/etc/mysql/my.cnf:ro
+      - ./mysql/conf/mysql.cnf:/etc/mysql/mysql.cnf:ro
+      - ./mysql/conf/conf.d/:/etc/mysql/conf.d/:ro
+      - $MYSQL_MYSQLCONFD_DIR:/etc/mysql/mysql.conf.d:ro
+      - $MYSQL_DATA_DIR:/var/lib/mysql:rw
+      - $MYSQL_LOG_DIR:/var/log:rw
+      - $SOURCE_SHARE_DIR:$GLOBAL_WORKING_DIR:rw
+      - /usr/share/zoneinfo/$GLOBAL_TIME_ZONE:/usr/share/zoneinfo/$GLOBAL_TIME_ZONE:ro
+#    command:
+#      - sh
+#      - -ceux
+#      - |
+#        chown -R $GLOBAL_USER_GROUP:$GLOBAL_USER_NAME $GLOBAL_WORKING_DIR ; \
+#        chmod -R 775 $GLOBAL_WORKING_DIR ; \
+#        chown -R $GLOBAL_USER_GROUP:$GLOBAL_USER_NAME /var/log ; \
+#        chmod -R 777 /var/log ; \
+#        mysqld ; \
+#        tail -f
+    environment:
+      TZ: $GLOBAL_TIME_ZONE
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: wifi
+      MYSQL_USER: wifi
+      MYSQL_PASSWORD: wifi
+    privileged: true
+    restart: always
+    stdin_open: true
+    networks:
+      - $GLOBAL_NETWORKS_NAME
+### Networks #########################################
+
+networks:
+  dnmp-networks:
+    driver: bridge
+  dnmp-nat:
+    driver: $GLOBAL_NETWORKS_DRIVER
+  dnmp-bridge:
+    driver: $GLOBAL_NETWORKS_DRIVER
+  dnmp-host:
+    driver: $GLOBAL_NETWORKS_DRIVER
+  dnmp-overlay:
+    driver: $GLOBAL_NETWORKS_DRIVER
+  dnmp-macvlan:
+    driver: $GLOBAL_NETWORKS_DRIVER
+
