@@ -11,20 +11,21 @@ ARG USER_GROUP_ID
 ARG USER_NAME_ID
 ARG TIME_ZONE
 ARG WORKING_DIR
-ARG CHANGE_SOURCE
+ARG CDN_URl
 ARG BUILD_DEPS
 ARG SAVE_DEPS
 ARG PECL_DEPS
-
-COPY resource /tmp/resource
-COPY resource/sources.list /etc/apt/sources.list
-
+COPY resource /tmp/resource/
 RUN set -eux ; \
+    # ⬇ 设置源
+    if [ -n "$CDN_URl" ]; then \
+        cp -a /tmp/resource/* /etc/  ; \
+#        sed -i "s/dl-cdn.alpinelinux.org/$CDN_URl/g" /etc/apk/repositories  ; \
+    fi ; \
     # ⬇ 更新、安装基础组件
-#    sed -i "http://dl-4.alpinelinux.org/alpine/edge/testing" /etc/apk/repositories ; \
-    sed -i "s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g" /etc/apk/repositories ; \
-    apk add --no-cache --virtual .build-deps shadow $BUILD_DEPS ; \
-    rm -rf /var/lib/apt/lists/* ; \
+    if [ -n "$BUILD_DEPS" ]; then \
+         apk add --no-cache --virtual .build-deps $BUILD_DEPS ; \
+    fi ; \
     # ⬇ 添加用户
     groupadd -f $USER_GROUP ; \
     groupmod -g $USER_GROUP_ID $USER_GROUP ; \
@@ -35,7 +36,7 @@ RUN set -eux ; \
         mkdir -p  $WORKING_DIR ; \
     fi ; \
     chown -R $USER_GROUP:$USER_NAME  $WORKING_DIR ; \
-    chmod -R 0751 $WORKING_DIR ; \
+    chmod -R 0775 $WORKING_DIR ; \
     # ⬇ 修改时区
     ln -snf /usr/share/zoneinfo/$TIME_ZONE /etc/localtime ; \
     echo $TIME_ZONE > /etc/timezone ;
@@ -52,7 +53,7 @@ RUN set -eux  ; \
 #    mv composer.phar /usr/local/bin/composer ; \
     # ⬇ 本地安装
     php ; \
-    mv /tmp/resource/composer.phar /usr/local/bin/composer  ; \
+    mv /etc/apk/lists/composer.phar /usr/local/bin/composer  ; \
     chmod 777 /usr/local/bin/composer  ; \
     # ⬇ 替换源
     rm -rf /etc/apt/sources.list.d/buster.list ; \
@@ -74,6 +75,7 @@ RUN set -eux  ; \
     fi ; \
 #    # ⬇ 清理 扩展安装源
     docker-php-source delete ; \
-    rm -rf /var/lib/apt/* ; \
-    rm -rf /tmp/resource ;
+    rm -rf /etc/apt/lists/* ; \
+    rm -rf /etc/apk/lists/* ; \
+    rm -rf //tmp/resource ;
 
