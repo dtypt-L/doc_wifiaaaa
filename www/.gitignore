@@ -1,0 +1,12 @@
+!.gitignore
+#自定义过滤
+.idea
+.DS_Store
+*.lock
+*.log
+*.txt
+nohup.out
+runtime/*
+vendor/*
+tests/*
+vendor/*
