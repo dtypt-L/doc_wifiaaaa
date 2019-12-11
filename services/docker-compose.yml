@@ -15,8 +15,9 @@ services:
         USER_NAME_ID: $GLOBAL_USER_NAME_ID
         WORKING_DIR: $GLOBAL_WORKING_DIR
         TIME_ZONE: $GLOBAL_TIME_ZONE
-        CHANGE_SOURCE: $GLOBAL_CHANGE_SOURCE
+        CDN_URl: $GLOBAL_CDN_URl
         BUILD_DEPS: $NGINX_BUILD_DEPS
+        SAVE_DEPS: $NGINX_SAVE_DEPS
 #    image: $NGINX_IMAGE_BASE:$NGINX_IMAGE_VERSION$NGINX_IMAGE_TAG
     container_name: $NGINX_CONTAINER_NAME
 #    user: $GLOBAL_USER_NAME
@@ -29,8 +30,6 @@ services:
       - $NGINX_HTTPS_PORT
       - $NGINX_HTTP_PORT_ADMIN
     tmpfs:
-      - /run
-      - /tmp
       - $GLOBAL_WORKING_DIR
     volumes:
       - ./nginx/conf:/etc/nginx/conf:ro
@@ -61,10 +60,10 @@ services:
         USER_NAME_ID: $GLOBAL_USER_NAME_ID
         WORKING_DIR: $GLOBAL_WORKING_DIR
         TIME_ZONE: $GLOBAL_TIME_ZONE
-        CHANGE_SOURCE: $GLOBAL_CHANGE_SOURCE
+        CDN_URl: $GLOBAL_CDN_URl
         BUILD_DEPS: $PHP_BUILD_DEPS
-        PECL_DEPS: $PHP_PECL_DEPS
         SAVE_DEPS: $PHP_SAVE_DEPS
+        PECL_DEPS: $PHP_PECL_DEPS
     container_name: $PHP_CONTAINER_NAME
 #    user: $GLOBAL_USER_NAME
     working_dir: $GLOBAL_WORKING_DIR
@@ -73,8 +72,6 @@ services:
     expose:
       - 9000
     tmpfs:
-      - /run
-      - /tmp
       - $GLOBAL_WORKING_DIR
     volumes:
       - ./php/conf://usr/local/etc/php/conf:ro
@@ -106,42 +103,38 @@ services:
         USER_NAME_ID: $GLOBAL_USER_NAME_ID
         WORKING_DIR: $GLOBAL_WORKING_DIR
         TIME_ZONE: $GLOBAL_TIME_ZONE
-        CHANGE_SOURCE: $GLOBAL_CHANGE_SOURCE
+        CDN_URl: $GLOBAL_CDN_URl
         BUILD_DEPS: $MYSQL_BUILD_DEPS
+        SAVE_DEPS: $MYSQL_SAVE_DEPS
 #    image: $MYSQL_IMAGE_BASE:$MYSQL_IMAGE_VERSION$MYSQL_IMAGE_TAG
     container_name: $MYSQL_CONTAINER_NAME
-    user: mysql
+#    user: $GLOBAL_USER_NAME
     working_dir: $GLOBAL_WORKING_DIR
     ports:
       - $MYSQL_HTTP_PORT
     expose:
-      - $MYSQL_EXPOSE_PORT
+      - 3306
+    tmpfs:
+      - $GLOBAL_WORKING_DIR
     volumes:
       - ./mysql/conf/my.cnf:/etc/mysql/my.cnf:ro
-      - ./mysql/conf/mysql.cnf:/etc/mysql/mysql.cnf:ro
-      - ./mysql/conf/conf.d/:/etc/mysql/conf.d/:ro
-      - $MYSQL_MYSQLCONFD_DIR:/etc/mysql/mysql.conf.d:ro
-      - $MYSQL_DATA_DIR:/var/lib/mysql:rw
-      - $MYSQL_LOG_DIR:/var/log:rw
-      - $SOURCE_SHARE_DIR:$GLOBAL_WORKING_DIR:rw
+      - ../data/database/mysql:$GLOBAL_WORKING_DIR/database/mysql:rw
+      - $SOURCE_SHARE_DIR/wwwlogs/mysql:$GLOBAL_WORKING_DIR/wwwlogs/mysql:rw
       - /usr/share/zoneinfo/$GLOBAL_TIME_ZONE:/usr/share/zoneinfo/$GLOBAL_TIME_ZONE:ro
 #    command:
 #      - sh
 #      - -ceux
 #      - |
-#        chown -R $GLOBAL_USER_GROUP:$GLOBAL_USER_NAME $GLOBAL_WORKING_DIR ; \
-#        chmod -R 775 $GLOBAL_WORKING_DIR ; \
-#        chown -R $GLOBAL_USER_GROUP:$GLOBAL_USER_NAME /var/log ; \
-#        chmod -R 777 /var/log ; \
+#        chmod -R 0777 $GLOBAL_WORKING_DIR/wwwlogs/mysql ;\
 #        mysqld ; \
-#        tail -f
+#        tail -f ; \
     environment:
       TZ: $GLOBAL_TIME_ZONE
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: wifi
       MYSQL_USER: wifi
       MYSQL_PASSWORD: wifi
-    privileged: true
+#    privileged: true
     restart: always
     stdin_open: true
     networks:
