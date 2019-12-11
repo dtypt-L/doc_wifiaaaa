@@ -139,6 +139,60 @@ services:
     stdin_open: true
     networks:
       - $GLOBAL_NETWORKS_NAME
+
+  ### Redis container #########################################
+  redis:
+    build:
+      context: ./redis/build
+      args:
+        IMAGE_BASE: $REDIS_IMAGE_BASE
+        IMAGE_VERSION: $REDIS_IMAGE_VERSION
+        IMAGE_TAG: $REDIS_IMAGE_TAG
+        USER_GROUP: $GLOBAL_USER_GROUP
+        USER_NAME: $GLOBAL_USER_NAME
+        USER_GROUP_ID: $GLOBAL_USER_GROUP_ID
+        USER_NAME_ID: $GLOBAL_USER_NAME_ID
+        WORKING_DIR: $GLOBAL_WORKING_DIR
+        TIME_ZONE: $GLOBAL_TIME_ZONE
+        CDN_URl: $GLOBAL_CDN_URl
+        BUILD_DEPS: $REDIS_BUILD_DEPS
+        SAVE_DEPS: $REDIS_SAVE_DEPS
+#    image: $REDIS_IMAGE_BASE:$REDIS_IMAGE_VERSION$REDIS_IMAGE_TAG
+    container_name: $REDIS_CONTAINER_NAME
+    user: root
+    working_dir: $GLOBAL_WORKING_DIR
+    ports:
+      - $REDIS_HTTP_PORT
+    expose:
+      - 6379
+    tmpfs:
+      - $GLOBAL_WORKING_DIR
+    volumes:
+      - ./redis/conf/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - ./redis/conf/sysctl.conf:/etc/sysctl.conf:ro
+      - ../data/database/redis:$GLOBAL_WORKING_DIR/database/redis:rw
+      - $SOURCE_SHARE_DIR/wwwlogs/redis:$GLOBAL_WORKING_DIR/wwwlogs/redis:rw
+      - /usr/share/zoneinfo/$GLOBAL_TIME_ZONE:/usr/share/zoneinfo/$GLOBAL_TIME_ZONE:ro
+    command:
+      - sh
+      - -ceux
+      - |
+        echo 1 > /proc/sys/vm/overcommit_memory ; \
+        mkdir -p /sys/kernel/mm/transparent_hugepage ; \
+        echo never > /sys/kernel/mm/transparent_hugepage/enabled ; \
+        redis-server /usr/local/etc/redis/redis.conf ; \
+        tail -f ;
+#    entrypoint: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    environment:
+      TZ: $GLOBAL_TIME_ZONE
+    privileged: true
+    restart: always
+    stdin_open: true
+    networks:
+      - $GLOBAL_NETWORKS_NAME
+
+
+
 ### Networks #########################################
 
 networks:
