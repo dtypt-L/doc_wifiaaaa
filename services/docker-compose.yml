@@ -33,14 +33,14 @@ services:
       - /tmp
       - $GLOBAL_WORKING_DIR
     volumes:
-      - $NGINX_CONF_DIR/nginx.conf:/etc/nginx/nginx.conf:ro
-      - $NGINX_CONF_DIR:/etc/nginx/conf:ro
+      - ./nginx/conf:/etc/nginx/conf:ro
+      - ./nginx/conf/nginx.conf:/etc/nginx/nginx.conf:ro
       - $SOURCE_SHARE_DIR/wwwroot:$GLOBAL_WORKING_DIR/wwwroot:ro
       - $SOURCE_SHARE_DIR/wwwlogs/nginx:$GLOBAL_WORKING_DIR/wwwlogs/nginx:rw
       - /usr/share/zoneinfo/$GLOBAL_TIME_ZONE:/usr/share/zoneinfo/$GLOBAL_TIME_ZONE:ro
     environment:
       TZ: $GLOBAL_TIME_ZONE
-    privileged: true
+#    privileged: true
     restart: always
     stdin_open: true
     networks:
@@ -62,7 +62,6 @@ services:
         WORKING_DIR: $GLOBAL_WORKING_DIR
         TIME_ZONE: $GLOBAL_TIME_ZONE
         CHANGE_SOURCE: $GLOBAL_CHANGE_SOURCE
-        INI_DIR: $PHP_INI_DIR
         BUILD_DEPS: $PHP_BUILD_DEPS
         PECL_DEPS: $PHP_PECL_DEPS
         SAVE_DEPS: $PHP_SAVE_DEPS
@@ -72,27 +71,22 @@ services:
     ports:
       - $PHP_HTTP_PORT
     expose:
-      - $PHP_EXPOSE_PORT
+      - 9000
+    tmpfs:
+      - /run
+      - /tmp
+      - $GLOBAL_WORKING_DIR
     volumes:
-      - $PHP_CONF_FILE:/usr/local/etc/php/php.ini:ro
-      - $PHP_FPM_FILE:/usr/local/etc/php-fpm.conf:ro
-      - $PHP_FPM_DIR:/usr/local/etc/php-fpm.d/:ro
-      - $PHP_LOG_DIR:/var/log:rw
-      - $SOURCE_SHARE_DIR:$GLOBAL_WORKING_DIR:rw
+      - ./php/conf://usr/local/etc/php/conf:ro
+      - ./php/conf/php.ini:/usr/local/etc/php/php.ini:ro
+      - ./php/conf/php-fpm.conf:/usr/local/etc/php-fpm.conf:ro
+      - ./php/conf/php-fpm.d:/usr/local/etc/php-fpm.d/:ro
+      - $SOURCE_SHARE_DIR/wwwroot:$GLOBAL_WORKING_DIR/wwwroot:ro
+      - $SOURCE_SHARE_DIR/wwwlogs/php:$GLOBAL_WORKING_DIR/wwwlogs/php:rw
       - /usr/share/zoneinfo/$GLOBAL_TIME_ZONE:/usr/share/zoneinfo/$GLOBAL_TIME_ZONE:ro
-    command:
-      - sh
-      - -ceux
-      - |
-        chown -R $GLOBAL_USER_GROUP:$GLOBAL_USER_NAME $GLOBAL_WORKING_DIR ; \
-        chmod -R 775 $GLOBAL_WORKING_DIR ; \
-        chown -R $GLOBAL_USER_GROUP:$GLOBAL_USER_NAME /var/log ; \
-        chmod -R 777 /var/log ; \
-        composer config -g repo.packagist composer https://packagist.phpcomposer.com ; \
-        php-fpm ; \
-        tail -f
     environment:
       TZ: $GLOBAL_TIME_ZONE
+    privileged: true
     restart: always
     stdin_open: true
     networks:

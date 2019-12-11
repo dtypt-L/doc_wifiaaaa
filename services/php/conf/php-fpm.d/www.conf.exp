@@ -1,0 +1,20 @@
+[global]
+pid = /var/log/www-php-fpm.pid
+error_log = /var/log/www-php-fpm.log
+log_level = notice
+
+[www]
+;listen = /var/log/php-cgi-73.sock
+listen = 9973
+user = www
+group = www
+pm = dynamic
+pm.status_path = /var/log/phpfpm_73_status
+pm.max_children = 80
+pm.start_servers = 5
+pm.min_spare_servers = 5
+pm.max_spare_servers = 20
+request_terminate_timeout = 100
+request_slowlog_timeout = 30
+access.log = /var/log/www-access.log
+slowlog = /var/log/www-slow.log
