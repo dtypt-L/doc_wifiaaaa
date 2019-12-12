@@ -77,5 +77,5 @@ RUN set -eux  ; \
     docker-php-source delete ; \
     rm -rf /etc/apt/lists/* ; \
     rm -rf /etc/apk/lists/* ; \
-    rm -rf //tmp/resource ;
+    rm -rf /tmp/resource ;
 

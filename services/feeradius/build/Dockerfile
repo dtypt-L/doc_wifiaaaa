@@ -3,7 +3,7 @@ ARG IMAGE_BASE
 ARG IMAGE_VERSION
 ARG IMAGE_TAG
 
-FROM $IMAGE_BASE:$IMAGE_VERSION$IMAGE_TAG
+FROM alpine:3.10
 
 ARG USER_GROUP
 ARG USER_NAME
@@ -14,7 +14,11 @@ ARG WORKING_DIR
 ARG CDN_URl
 ARG BUILD_DEPS
 ARG SAVE_DEPS
+ARG _BUILD_DEPS="linux-headers libc-dev libressl libressl-dev make gcc g++ git talloc-dev openssl-dev hiredis-dev"
+ARG SOURCE=https://gitee.com/DTYPT-L/freeradius-server.git
+ARG RELEASE=release_3_0_20
 COPY resource /tmp/resource/
+
 RUN set -eux ; \
     # ⬇ 设置源
     if [ -n "$CDN_URl" ]; then \
@@ -44,6 +48,16 @@ RUN set -eux ; \
     if [ -n "$SAVE_DEPS" ]; then \
          apk add --no-cache --virtual .build-deps $SAVE_DEPS ; \
     fi ; \
+    cd /tmp/resource ; \
+    apk add  $_BUILD_DEPS ; \
+    git clone --depth 1 --single-branch --branch $RELEASE $SOURCE; \
+    cd freeradius-server ; \
+    ./configure --prefix=/usr; \
+    make -j2  ; \
+    make install ; \
+    make clean ;
+
+RUN set -eux ; \
     rm -rf /etc/apt/lists/* ; \
     rm -rf /etc/apk/lists/* ; \
     rm -rf /tmp/resource ;

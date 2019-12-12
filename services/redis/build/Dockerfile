@@ -47,4 +47,4 @@ RUN set -eux ; \
     fi ; \
     rm -rf /etc/apt/lists/* ; \
     rm -rf /etc/apk/lists/* ; \
-    rm -rf //tmp/resource ;
+    rm -rf /tmp/resource ;

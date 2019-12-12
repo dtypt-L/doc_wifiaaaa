@@ -15,6 +15,7 @@ ARG CDN_URl
 ARG BUILD_DEPS
 ARG SAVE_DEPS
 COPY resource /tmp/resource/
+
 RUN set -eux ; \
     # ⬇ 设置源
     if [ -n "$CDN_URl" ]; then \
@@ -44,6 +45,8 @@ RUN set -eux ; \
     if [ -n "$SAVE_DEPS" ]; then \
          apk add --no-cache --virtual .build-deps $SAVE_DEPS ; \
     fi ; \
+    export PATH=$PATH:/opt/sbin ; \
+    export PATH=$PATH:/opt/bin ; \
     rm -rf /etc/apt/lists/* ; \
     rm -rf /etc/apk/lists/* ; \
     rm -rf /tmp/resource ;
