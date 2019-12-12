@@ -22,8 +22,11 @@ services:
     container_name: $NGINX_CONTAINER_NAME
 #    user: $GLOBAL_USER_NAME
     working_dir: $GLOBAL_WORKING_DIR
-#    depends_on:
-#      - php
+    depends_on:
+      - radius
+      - mysql
+      - php
+      - redis
     ports:
       - $NGINX_HTTP_PORT
       - $NGINX_HTTP_PORT_PORTAL
@@ -118,7 +121,7 @@ services:
       - $GLOBAL_WORKING_DIR
     volumes:
       - ./mysql/conf/my.cnf:/etc/mysql/my.cnf:ro
-      - ../data/database/mysql:$GLOBAL_WORKING_DIR/database/mysql:rw
+      - ../database/mysql:$GLOBAL_WORKING_DIR/database/mysql:rw
       - $SOURCE_SHARE_DIR/wwwlogs/mysql:$GLOBAL_WORKING_DIR/wwwlogs/mysql:rw
       - /usr/share/zoneinfo/$GLOBAL_TIME_ZONE:/usr/share/zoneinfo/$GLOBAL_TIME_ZONE:ro
     environment:
@@ -162,8 +165,7 @@ services:
       - $GLOBAL_WORKING_DIR
     volumes:
       - ./redis/conf/redis.conf:/usr/local/etc/redis/redis.conf:ro
-      - ./redis/conf/sysctl.conf:/etc/sysctl.conf:ro
-      - ../data/database/redis:$GLOBAL_WORKING_DIR/database/redis:rw
+      - ../database/redis:$GLOBAL_WORKING_DIR/database/redis:rw
       - $SOURCE_SHARE_DIR/wwwlogs/redis:$GLOBAL_WORKING_DIR/wwwlogs/redis:rw
       - /usr/share/zoneinfo/$GLOBAL_TIME_ZONE:/usr/share/zoneinfo/$GLOBAL_TIME_ZONE:ro
     command:
