@@ -121,19 +121,12 @@ services:
       - ../data/database/mysql:$GLOBAL_WORKING_DIR/database/mysql:rw
       - $SOURCE_SHARE_DIR/wwwlogs/mysql:$GLOBAL_WORKING_DIR/wwwlogs/mysql:rw
       - /usr/share/zoneinfo/$GLOBAL_TIME_ZONE:/usr/share/zoneinfo/$GLOBAL_TIME_ZONE:ro
-#    command:
-#      - sh
-#      - -ceux
-#      - |
-#        chmod -R 0777 $GLOBAL_WORKING_DIR/wwwlogs/mysql ;\
-#        mysqld ; \
-#        tail -f ; \
     environment:
       TZ: $GLOBAL_TIME_ZONE
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: wifi
-      MYSQL_USER: wifi
-      MYSQL_PASSWORD: wifi
+      MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
+      MYSQL_DATABASE: $MYSQL_DATABASE
+      MYSQL_USER: $MYSQL_USER
+      MYSQL_PASSWORD: $MYSQL_PASSWORD
 #    privileged: true
     restart: always
     stdin_open: true
@@ -159,7 +152,7 @@ services:
         SAVE_DEPS: $REDIS_SAVE_DEPS
 #    image: $REDIS_IMAGE_BASE:$REDIS_IMAGE_VERSION$REDIS_IMAGE_TAG
     container_name: $REDIS_CONTAINER_NAME
-    user: root
+#    user: $GLOBAL_USER_NAME
     working_dir: $GLOBAL_WORKING_DIR
     ports:
       - $REDIS_HTTP_PORT
@@ -191,7 +184,83 @@ services:
     networks:
       - $GLOBAL_NETWORKS_NAME
 
+  ### Radius container #########################################
+  radius:
+    build:
+      context: ./radius/build
+      args:
+        IMAGE_BASE: $RADIUS_IMAGE_BASE
+        IMAGE_VERSION: $RADIUS_IMAGE_VERSION
+        IMAGE_TAG: $RADIUS_IMAGE_TAG
+        USER_GROUP: $GLOBAL_USER_GROUP
+        USER_NAME: $GLOBAL_USER_NAME
+        USER_GROUP_ID: $GLOBAL_USER_GROUP_ID
+        USER_NAME_ID: $GLOBAL_USER_NAME_ID
+        WORKING_DIR: $GLOBAL_WORKING_DIR
+        TIME_ZONE: $GLOBAL_TIME_ZONE
+        CDN_URl: $GLOBAL_CDN_URl
+        BUILD_DEPS: $RADIUS_BUILD_DEPS
+        SAVE_DEPS: $RADIUS_SAVE_DEPS
+#    image: $RADIUS_IMAGE_BASE:$RADIUS_IMAGE_VERSION$RADIUS_IMAGE_TAG
+    container_name: $RADIUS_CONTAINER_NAME
+#    user: $GLOBAL_USER_NAME
+    working_dir: $GLOBAL_WORKING_DIR
+    ports:
+      - $RADIUS_HTTP_PORT
+    expose:
+      - '1812/udp'
+      - '1813/udp'
+    tmpfs:
+      - $GLOBAL_WORKING_DIR
+    volumes:
+      - $SOURCE_SHARE_DIR/wwwlogs/radius:$GLOBAL_WORKING_DIR/wwwlogs/radius:rw
+      - /usr/share/zoneinfo/$GLOBAL_TIME_ZONE:/usr/share/zoneinfo/$GLOBAL_TIME_ZONE:ro
+    environment:
+      TZ: $GLOBAL_TIME_ZONE
+#    privileged: true
+    restart: always
+    stdin_open: true
+    networks:
+      - $GLOBAL_NETWORKS_NAME
 
+  ### Feeradius container #########################################
+  freeradius:
+    build:
+      context: freeradius/build
+      args:
+        IMAGE_BASE: $RADIUS_IMAGE_BASE
+        IMAGE_VERSION: $RADIUS_IMAGE_VERSION
+        IMAGE_TAG: $RADIUS_IMAGE_TAG
+        USER_GROUP: $GLOBAL_USER_GROUP
+        USER_NAME: $GLOBAL_USER_NAME
+        USER_GROUP_ID: $GLOBAL_USER_GROUP_ID
+        USER_NAME_ID: $GLOBAL_USER_NAME_ID
+        WORKING_DIR: $GLOBAL_WORKING_DIR
+        TIME_ZONE: $GLOBAL_TIME_ZONE
+        CDN_URl: $GLOBAL_CDN_URl
+        BUILD_DEPS: $RADIUS_BUILD_DEPS
+        SAVE_DEPS: $RADIUS_SAVE_DEPS
+    container_name: dmp_freeradius
+    #    user: $GLOBAL_USER_NAME
+    working_dir: $GLOBAL_WORKING_DIR
+    ports:
+      - $RADIUS_HTTP_PORT
+    expose:
+      - '1812/udp'
+      - '1813/udp'
+      - '1814/udp'
+    tmpfs:
+      - $GLOBAL_WORKING_DIR
+    volumes:
+      - $SOURCE_SHARE_DIR/wwwlogs/radius:$GLOBAL_WORKING_DIR/wwwlogs/radius:rw
+      - /usr/share/zoneinfo/$GLOBAL_TIME_ZONE:/usr/share/zoneinfo/$GLOBAL_TIME_ZONE:ro
+    environment:
+      TZ: $GLOBAL_TIME_ZONE
+    privileged: true
+    restart: always
+    stdin_open: true
+    networks:
+      - $GLOBAL_NETWORKS_NAME
 
 ### Networks #########################################
 

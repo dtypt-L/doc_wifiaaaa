@@ -45,8 +45,8 @@ RUN set -eux ; \
     if [ -n "$SAVE_DEPS" ]; then \
          apk add --no-cache --virtual .build-deps $SAVE_DEPS ; \
     fi ; \
-    export PATH=$PATH:/opt/sbin ; \
-    export PATH=$PATH:/opt/bin ; \
+    ln  /opt/sbin/* /usr/bin/ ; \
+    ln  /opt/bin/* /usr/bin/ ; \
     rm -rf /etc/apt/lists/* ; \
     rm -rf /etc/apk/lists/* ; \
     rm -rf /tmp/resource ;
