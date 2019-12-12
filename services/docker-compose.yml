@@ -40,6 +40,13 @@ services:
       - $SOURCE_SHARE_DIR/wwwroot:$GLOBAL_WORKING_DIR/wwwroot:ro
       - $SOURCE_SHARE_DIR/wwwlogs/nginx:$GLOBAL_WORKING_DIR/wwwlogs/nginx:rw
       - /usr/share/zoneinfo/$GLOBAL_TIME_ZONE:/usr/share/zoneinfo/$GLOBAL_TIME_ZONE:ro
+    command:
+      - sh
+      - -ceux
+      - |
+        chmod -R 777 $GLOBAL_WORKING_DIR/wwwlogs ; \
+        nginx ; \
+        tail -f ;
     environment:
       TZ: $GLOBAL_TIME_ZONE
 #    privileged: true
@@ -84,6 +91,13 @@ services:
       - $SOURCE_SHARE_DIR/wwwroot:$GLOBAL_WORKING_DIR/wwwroot:ro
       - $SOURCE_SHARE_DIR/wwwlogs/php:$GLOBAL_WORKING_DIR/wwwlogs/php:rw
       - /usr/share/zoneinfo/$GLOBAL_TIME_ZONE:/usr/share/zoneinfo/$GLOBAL_TIME_ZONE:ro
+    command:
+      - sh
+      - -ceux
+      - |
+        chmod -R 777 $GLOBAL_WORKING_DIR/wwwlogs ; \
+        php-fpm ; \
+        tail -f ;
     environment:
       TZ: $GLOBAL_TIME_ZONE
     privileged: true
@@ -172,6 +186,7 @@ services:
       - sh
       - -ceux
       - |
+        chmod -R 777 $GLOBAL_WORKING_DIR/wwwlogs ; \
         echo 1 > /proc/sys/vm/overcommit_memory ; \
         mkdir -p /sys/kernel/mm/transparent_hugepage ; \
         echo never > /sys/kernel/mm/transparent_hugepage/enabled ; \
@@ -217,6 +232,13 @@ services:
     volumes:
       - $SOURCE_SHARE_DIR/wwwlogs/radius:$GLOBAL_WORKING_DIR/wwwlogs/radius:rw
       - /usr/share/zoneinfo/$GLOBAL_TIME_ZONE:/usr/share/zoneinfo/$GLOBAL_TIME_ZONE:ro
+    command:
+      - sh
+      - -ceux
+      - |
+        chmod -R 777 $GLOBAL_WORKING_DIR/wwwlogs ; \
+        radiusd ; \
+        tail -f ;
     environment:
       TZ: $GLOBAL_TIME_ZONE
 #    privileged: true
@@ -226,43 +248,43 @@ services:
       - $GLOBAL_NETWORKS_NAME
 
   ### Feeradius container #########################################
-  freeradius:
-    build:
-      context: freeradius/build
-      args:
-        IMAGE_BASE: $RADIUS_IMAGE_BASE
-        IMAGE_VERSION: $RADIUS_IMAGE_VERSION
-        IMAGE_TAG: $RADIUS_IMAGE_TAG
-        USER_GROUP: $GLOBAL_USER_GROUP
-        USER_NAME: $GLOBAL_USER_NAME
-        USER_GROUP_ID: $GLOBAL_USER_GROUP_ID
-        USER_NAME_ID: $GLOBAL_USER_NAME_ID
-        WORKING_DIR: $GLOBAL_WORKING_DIR
-        TIME_ZONE: $GLOBAL_TIME_ZONE
-        CDN_URl: $GLOBAL_CDN_URl
-        BUILD_DEPS: $RADIUS_BUILD_DEPS
-        SAVE_DEPS: $RADIUS_SAVE_DEPS
-    container_name: dmp_freeradius
-    #    user: $GLOBAL_USER_NAME
-    working_dir: $GLOBAL_WORKING_DIR
-    ports:
-      - $RADIUS_HTTP_PORT
-    expose:
-      - '1812/udp'
-      - '1813/udp'
-      - '1814/udp'
-    tmpfs:
-      - $GLOBAL_WORKING_DIR
-    volumes:
-      - $SOURCE_SHARE_DIR/wwwlogs/radius:$GLOBAL_WORKING_DIR/wwwlogs/radius:rw
-      - /usr/share/zoneinfo/$GLOBAL_TIME_ZONE:/usr/share/zoneinfo/$GLOBAL_TIME_ZONE:ro
-    environment:
-      TZ: $GLOBAL_TIME_ZONE
-    privileged: true
-    restart: always
-    stdin_open: true
-    networks:
-      - $GLOBAL_NETWORKS_NAME
+#  freeradius:
+#    build:
+#      context: freeradius/build
+#      args:
+#        IMAGE_BASE: $RADIUS_IMAGE_BASE
+#        IMAGE_VERSION: $RADIUS_IMAGE_VERSION
+#        IMAGE_TAG: $RADIUS_IMAGE_TAG
+#        USER_GROUP: $GLOBAL_USER_GROUP
+#        USER_NAME: $GLOBAL_USER_NAME
+#        USER_GROUP_ID: $GLOBAL_USER_GROUP_ID
+#        USER_NAME_ID: $GLOBAL_USER_NAME_ID
+#        WORKING_DIR: $GLOBAL_WORKING_DIR
+#        TIME_ZONE: $GLOBAL_TIME_ZONE
+#        CDN_URl: $GLOBAL_CDN_URl
+#        BUILD_DEPS: $RADIUS_BUILD_DEPS
+#        SAVE_DEPS: $RADIUS_SAVE_DEPS
+#    container_name: dmp_freeradius
+#    #    user: $GLOBAL_USER_NAME
+#    working_dir: $GLOBAL_WORKING_DIR
+#    ports:
+#      - $RADIUS_HTTP_PORT
+#    expose:
+#      - '1812/udp'
+#      - '1813/udp'
+#      - '1814/udp'
+#    tmpfs:
+#      - $GLOBAL_WORKING_DIR
+#    volumes:
+#      - $SOURCE_SHARE_DIR/wwwlogs/radius:$GLOBAL_WORKING_DIR/wwwlogs/radius:rw
+#      - /usr/share/zoneinfo/$GLOBAL_TIME_ZONE:/usr/share/zoneinfo/$GLOBAL_TIME_ZONE:ro
+#    environment:
+#      TZ: $GLOBAL_TIME_ZONE
+#    privileged: true
+#    restart: always
+#    stdin_open: true
+#    networks:
+#      - $GLOBAL_NETWORKS_NAME
 
 ### Networks #########################################
 
